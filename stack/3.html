@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title></title>
+	<script src='../d3.min.js'></script>
+	<link rel="stylesheet" href="">
+	<style>
+		.axis line,.axis path{
+			fill:none;
+			stroke:black;
+			shape-rendering: crispEdges;
+		}
+		.axis text{
+			font-family:sans-serif;
+			font-size: 12px;
+		}
+	</style>
+</head>
+<body>
+	<script>
+		var dataset = [
+			{
+				name:'电脑',
+				sales:[
+					{year:2005,profit:3000},
+					{year:2006,profit:1300},
+					{year:2007,profit:3700},
+					{year:2008,profit:4900},
+					{year:2009,profit:700}
+				]
+			},{
+				name:'智能手机',
+				sales:[
+					{year:2005,profit:2000},
+					{year:2006,profit:4000},
+					{year:2007,profit:1810},
+					{year:2008,profit:6540},
+					{year:2009,profit:2820}
+				]
+			},{
+				name:'软件',
+				sales:[
+					{year:2005,profit:1100},
+					{year:2006,profit:1700},
+					{year:2007,profit:1680},
+					{year:2008,profit:4000},
+					{year:2009,profit:4900}
+				]
+			}
+		]
+		var width = 800,height = 400;
+
+		//svg
+		var svg = d3.select('body').append('svg').attr('width',width).attr('height',height)
+
+		//转换数据
+		var stack = d3.layout.stack()
+						.values((d)=>{return d.sales})
+						.x((d)=>{return d.year})
+						.y((d)=>{return d.profit})
+		var data = stack(dataset)
+		console.log(data)
+		//x比例尺
+		var padding = {top:40,right:100,bottom:40,left:50}
+		var xRangeWidth = width - padding.left - padding.right
+
+		var xScale = d3.scale.ordinal()
+						.domain(data[0].sales.map((d)=>{return d.year}))
+						.rangeBands([0,xRangeWidth],0.3)
+
+		//y比例尺
+		var maxProfit = d3.max(data[data.length-1].sales,(d)=>{return d.y+d.y0})
+		var yRangeWidth = height - padding.top - padding.bottom
+		var yScale = d3.scale.linear()
+						.domain([0,maxProfit])
+						.range([0,yRangeWidth])
+		//颜色
+		var colors = d3.scale.category20()
+
+		//rect分组
+		var groups = svg.selectAll('g')
+						.data(data)
+						.enter()
+						.append('g')
+						.attr('fill',(d,i)=>{return colors(i)})
+
+		var rect = groups.selectAll('rect')
+							.data((d)=>{return d.sales})
+							.enter()
+							.append('rect')
+							.attr('x',(d)=>{return xScale(d.year)})
+							.attr('y',(d)=>{return yRangeWidth - yScale(d.y + d.y0)})
+							.attr('width',(d)=>{return xScale.rangeBand()})
+							.attr('height',(d)=>{return yScale(d.y)})
+							.attr('transform','translate('+padding.left+','+padding.top+')')
+		//arec区域生成器
+		var area = d3.svg.area()
+					.x((d)=>{return xScale(d.year)+xScale.rangeBand()/2})
+					.y((d)=>{return yRangeWidth - yScale(d.y0)})
+					.y0((d)=>{return yRangeWidth - yScale(d.y +d.y0)})
+					.interpolate('basis')
+
+		// var areaPath = groups.append('path')
+		// 						.attr('d',(d)=>{
+		// 							return area(d.sales)
+		// 						})
+		// 						.attr('transform','translate('+padding.left+','+padding.top+')')
+
+		//x轴
+		var xAxis = d3.svg.axis()
+						.scale(xScale)
+						.orient('bottom')
+		var gx = svg.append('g').attr('class','axis').attr('transform','translate('+padding.left+','+(height-padding.top)+')').call(xAxis)
+
+		//y轴
+		yScale.range([yRangeWidth,0])
+		var yAxis = d3.svg.axis()
+						.scale(yScale)
+						.orient('left')
+		var gy = svg.append('g').attr('class','axis').attr('transform','translate('+padding.left+','+padding.top+')').call(yAxis)
+
+		var labHeight = 50,
+			labRadius = 10
+
+		var labCircle = groups.append('circle')
+								.attr('cx',(d)=>{
+									return width - padding.right*0.98
+								})
+								.attr('cy',(d,i)=>{
+									return padding.top + labHeight *i
+								})
+								.attr('r',labRadius)
+		var labText = groups.append('text')
+							.attr('x',(d)=>{return width - padding.right * 0.8})
+							.attr('y',(d,i)=>{
+									return padding.top + labHeight *i
+								})
+							.attr('dy','0.35em')
+							.text((d)=>{
+								return d.name
+							})
+	</script>
+</body>
+</html>

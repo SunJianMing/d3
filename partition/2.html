@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title></title>
+    <script src='../d3.min.js'></script>
+    <link rel="stylesheet" href="">
+    <style>
+    .nodeText {
+        /*writing-mode: tb;*/
+        font-family: simsun;
+        font-size: 12px;
+        text-anchor: middle;
+        /*fill:#fff;*/
+    }
+    </style>
+</head>
+
+<body>
+    <script>
+    var width = 800,
+        height = 500,
+        radius = Math.min(width, height) / 2,
+        colors = d3.scale.category20c()
+    var svg = d3.select('body')
+        .append('svg')
+        .attr('width', width)
+        .attr('height', height)
+        .append('g')
+        .attr('transform', 'translate(' + width / 2 + ',' + height / 2 + ')')
+
+    var partition = d3.layout.partition()
+        .sort(null)
+        .size([2 * Math.PI, radius * radius])
+        .value(d => { return 1 })
+
+    var arc = d3.svg.arc()
+        .startAngle(d => { return d.x })
+        .endAngle(d => { return d.x + d.dx })
+        .innerRadius(d => { return Math.sqrt(d.y) })
+        .outerRadius(d => { return Math.sqrt(d.y + d.dy) })
+
+    d3.json('city.json', (err, root) => {
+        if (err) {
+            console.log(err)
+        }
+        var nodes = partition(root)
+
+        var gArcs = svg.selectAll('g')
+            .data(nodes)
+            .enter()
+            .append('g')
+
+        gArcs.append('path')
+            .attr('display', d => { return d.depth ? null : 'none' })
+            .attr('d', arc)
+            .attr('stroke', '#fff')
+            .attr('fill', d => { return colors((d.children ? d : d.parent).name) })
+        gArcs.append('text')
+            .attr('class', 'nodeText')
+            .attr('dy', '.5em')
+            .attr('transform', (d, i) => {
+                if(i !== 0){
+                	var r = d.x + d.dx/2
+                	var angle = Math.PI/2
+                	r += r < Math.PI ? (angle*-1):angle
+                	r *= 180/Math.PI
+                	return 'translate('+arc.centroid(d)+')'+'rotate('+r+')'
+                }
+                
+            })
+            .text(d => { return d.name })
+    })
+    </script>
+</body>
+
+</html>

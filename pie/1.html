@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title></title>
+	<script src='../d3.min.js'></script>
+	<link rel="stylesheet" href="">
+</head>
+<body>
+	<script>
+		var dataset = [
+			['小米',60.8],
+			['三星',47.3],
+			['联想',47.3],
+			['苹果',46.6],
+			['华为',41.3],
+			['酷派',40.1],
+			['其他',111.5]
+		]
+
+		var pie = d3.layout.pie()
+					.value(function(d){
+						return d[1]
+					})
+
+		var piedate = pie(dataset)
+		
+		var color = d3.scale.category20()
+		var width = 400
+		var height = 400
+
+		var svg = d3.select('body').append('svg').attr('width',width).attr('height',height)
+
+		var piePath = d3.svg.arc()
+						.innerRadius(0)
+						.outerRadius(width/3)
+
+		var g = svg.selectAll('g')
+					.data(piedate)
+					.enter()
+					.append('g')
+					.attr('transform','translate('+width/2+','+height/2+')')
+		g.append('path')
+			.attr('fill',function(d,i){
+				return color(i)
+			})
+			.attr('d',function(d){
+				return piePath(d)
+			})
+		g.append('text')
+			.attr('fill','white')
+			.attr('text-anchor','middle')
+			.attr('font-size','14px')
+			.attr('transform',function(d){
+				
+				var x = piePath.centroid(d)[0] * 1.4
+				var y = piePath.centroid(d)[1] * 1.4
+				return 'translate('+x+','+y+')'
+			})
+			.text(function(d){
+				var percent = Number(d.value) / (d3.sum(dataset,function(d){
+					return d[1]
+				}))*100
+				console.log(percent)
+				return percent.toFixed(1)+'%'
+			})
+
+			g.append('line')
+				.attr('x1',function(d){
+					return piePath.centroid(d)[0] * 2
+				})
+				.attr('y1',function(d){
+					return piePath.centroid(d)[1] * 2
+				})
+				.attr('x2',function(d){
+					return piePath.centroid(d)[0] * 2.4
+				})
+				.attr('y2',function(d){
+					return piePath.centroid(d)[1] * 2.4
+				})
+				.attr('stroke-width','3px')
+				.attr('stroke',function(d,i){
+					return color(i)
+				})
+			g.append('text')
+				.attr('fill',function(d,i){
+					return color(i)
+				})
+				.attr('text-anchor','middle')
+				.attr('transform',function(d){
+					var x = piePath.centroid(d)[0] * 2.8
+					var y = piePath.centroid(d)[1] * 2.8
+					return 'translate('+x+','+y+')'
+				})
+
+				.text(function(d){
+					return d.data[0]
+				})
+
+
+	</script>
+</body>
+</html>

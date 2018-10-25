@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title></title>
+	<script src='../d3.min.js'></script>
+	<link rel="stylesheet" href="">
+	<style>
+		.nodeText{
+			writing-mode: tb;
+			font-family: simsun;
+			font-size: 16px;
+			fill:#fff;
+		}
+	</style>
+</head>
+<body>
+	<script>
+		var width = 800,height = 500;
+		//svg
+		var svg = d3.select('body').append('svg').attr('width',width).attr('height',height)
+		var partition = d3.layout.partition()
+						.sort(null)
+						.size([width,height])
+						.value((d)=>{return 1})
+		d3.json('city.json',function(error,root){
+			var nodes = partition.nodes(root)
+			// var links = partition.links(nodes)
+			console.log(nodes)
+			var colors = d3.scale.category20()
+			var groups = svg.selectAll('g')
+							.data(nodes)
+							.enter()
+							.append('g')
+							
+			
+			var gRect = groups.append('rect')
+							.attr('x',(d)=>{
+								// console.log(d)
+								return d.x
+							})
+							.attr('y',(d)=>{
+								return d.y
+							})
+							.attr('width',(d)=>{return d.dx})
+							.attr('height',(d)=>{return d.dy})
+							.attr('stroke','#fff')
+							.attr('fill',(d)=>{
+								return colors((d.children?d:d.parent).name)
+							})
+			var gText = groups.append('text')
+							.attr('class','nodeText')
+							.attr('x',(d)=>{return d.x})
+							.attr('y',(d)=>{return d.y})
+							.attr('dx',20)
+							.attr('dy',20)
+							.text(d=>{return d.name})
+							
+
+		})
+
+		
+
+	</script>
+</body>
+</html>

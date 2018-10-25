@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>弦图（chord）</title>
+	<script src='../d3.min.js'></script>
+	<link rel="stylesheet" href="">
+</head>
+<body>
+	<script>
+		var continent = ['亚洲','欧洲','非洲','美洲','大洋洲']
+
+		var population = [
+			[9000,870,3000,1000,5200],
+			[3400,8000,2300,4922,374],
+			[2000,2000,7700,4881,1050],
+			[3000,8012,5531,500,400],
+			[3540,4310,1500,1900,300]
+		]
+
+		var chord = d3.layout.chord()
+					.padding(0.01)
+					.sortSubgroups(d3.ascending)
+					.matrix(population)
+		console.log(chord.groups())
+		console.log(chord.chords())
+		var width=height = 600;
+		var svg = d3.select('body')
+					.append('svg')
+					.attr('width',width)
+					.attr('height',height)
+		var gChord = svg.append('g')
+			.attr('transform','translate('+width/2+','+height/2+')')
+
+		var gOuter = gChord.append('g')
+
+		var gInner = gChord.append('g')
+
+
+		var color = d3.scale.category20b()
+		var innerRadius = width/2 * 0.7
+		var outerRadius = innerRadius * 1.1
+		var arc = d3.svg.arc()
+					.innerRadius(innerRadius)
+					.outerRadius(outerRadius)
+
+		gOuter.selectAll('.outerPath')
+				.data(chord.groups())
+				.enter()
+				.append('path')
+				.attr('fill',function(d,i){
+					return color(i)
+				})
+				.attr('d',arc)
+				.on('mousemove',fade(0))
+				.on('mouseout',fade(1))
+		gOuter.selectAll('text')
+				.data(chord.groups())
+				.enter()
+				.append('text')
+				.each(function(d,i){
+					
+					d.angle = (d.startAngle + d.endAngle) /2
+					d.name = continent[i]
+					console.log(d)
+				})
+				.attr('fill',function(d,i){
+					return color(i)
+				})
+				.attr('text-anchor','middle')
+				.attr('dy','.35em')
+				.attr('transform',function(d,i){
+					// return d.
+					var result = 'rotate('+(d.angle*180/Math.PI)+')';
+
+					result += ' translate(0,'+-1*(outerRadius+10)+')'
+
+					if(d.angle > Math.PI *3/4 && d.angle < Math.PI *5/4){
+						result += 'rotate(180)'
+					}
+					console.log(result)
+					return result
+				})
+
+				.text(function(d){
+					return d.name
+				})
+
+		var chordPath = d3.svg.chord()
+						.radius(innerRadius)
+
+		gInner.selectAll('path')
+				.data(chord.chords)
+				.enter()
+				.append('path')
+				.attr('fill',function(d,i){
+					return color(i)
+				})
+				.attr('d',function(d){
+					return chordPath(d)
+				})
+		function fade(opacity){
+			return function(d,i){
+				console.log(i)
+				gInner.selectAll('path')
+						.filter(function(d){
+							return d.source.index != i && d.target.index != i
+						})
+						.transition()
+						.duration(1000)
+						.style('opacity',opacity)
+			}
+		}		
+		// gOuter.selectAll()
+	</script>
+</body>
+</html>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title></title>
+	<script src='../d3.min.js'></script>
+	<link rel="stylesheet" href="">
+</head>
+<body>
+	<script>
+
+		var width=height=400,color = d3.scale.category20();
+
+		var dataset =  [['苹果',11],['华为',11],['联想',11]]
+
+		var pie = d3.layout.pie()
+						.value(function(d){
+							return d[1]
+						})
+
+		var pieData = pie(dataset)
+		console.log(pieData)
+		var arcPath = d3.svg.arc()
+						.innerRadius(0)
+						.outerRadius(width/3)
+
+		var svg = d3.select('body').append('svg').attr('width',width).attr('height',height)
+
+		var g = svg.selectAll('g')
+			.data(pieData)
+			.enter()
+			.append('g')
+			.attr('transform','translate('+width/2+','+height/2+')')
+		
+		g.append('path')
+			.attr('fill',function(d,i){
+				return color(i)
+			})
+			.attr('d',function(d){
+				return arcPath(d)
+			})
+			.on('mousemove',function(d,i){
+				
+				d3.select(this)
+				.transition()
+				.duration(500)
+				.attr('fill',color(i+4))
+			})
+			.on('mouseout',function(d,i){
+
+				 d3.select(this)
+				 .transition()
+				.duration(500)
+				 .attr('fill',color(i))
+			})
+
+		g.append('text')
+			.attr('fill','white')
+			.attr('text-anchor','middle')
+			.attr('transform',function(d){
+				var x = arcPath.centroid(d)[0] * 1.4
+				var y = arcPath.centroid(d)[1] * 1.4
+				return 'translate('+x+','+y+')'
+			})
+			.text(function(d){
+				var number = Number(d.value)/(d3.sum(dataset,function(d){return d[1]})) *100
+				return number.toFixed(1)+'%'
+			})
+
+		g.append('line')
+			.attr('stroke',function(d,i){
+				return color(i)
+			})
+			.attr('fill','none')
+			.attr('x1',function(d){return arcPath.centroid(d)[0] * 1.9})
+			.attr('y1',function(d){return arcPath.centroid(d)[1] * 1.9})
+			.attr('x2',function(d){return arcPath.centroid(d)[0] * 2.3})
+			.attr('y2',function(d){return arcPath.centroid(d)[1] * 2.3})
+
+		g.append('text')
+			.attr('fill',function(d,i){
+				return color(i)
+			})
+			.attr('text-anchor','middle')
+			.attr('transform',function(d){
+				var x = arcPath.centroid(d)[0] * 2.6
+				var y = arcPath.centroid(d)[1] * 2.6
+				return 'translate('+x+','+y+')'
+			})
+			.text(function(d){
+				return d.data[0]
+			})
+	</script>
+</body>
+</html>

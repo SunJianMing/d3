@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title></title>
+	<link rel="stylesheet" href="">
+	<script src='../d3.js'></script>
+	<style>
+		.axis line,.axis path{
+			fill:none;
+			stroke:black;
+		}
+	</style>
+</head>
+<body>
+	<script>
+		var dataset = [
+			['小米',60.8],
+			['三星',47.3],
+			['联想',47.3],
+			['苹果',46.6],
+			['华为',41.3],
+			['酷派',40.1],
+			['其他',111.5]
+		]
+	</script>
+	<script>
+		var width=height=200,colors= d3.scale.category10();
+		var svg = d3.select('body').append('svg').attr('width',width).attr('height',height)
+		
+		var pie = d3.layout.pie()
+					.value(function(d){return d[1]})
+
+		var data = pie(dataset)
+		
+		var arc = d3.svg.arc()
+					.innerRadius(width/6)
+					.outerRadius(width/2)
+		var g = svg.selectAll('g')
+			.data(data)
+			.enter()
+			.append('g')
+			.attr('transform','translate('+width/2+','+height/2+')')
+
+		g.append('path')
+			.attr('d',arc)
+			.attr('fill',function(d,i){
+				return colors(i)
+			})
+			.attr('stroke','#fff')
+		g.append('text')
+			.text(function(d){
+				var value = (Number(d.value) / d3.sum(dataset,function(d){
+									return d[1]
+								})*100)
+				return value.toFixed(1)+'%'
+			})
+			.attr('text-anchor','middle')
+			.attr('transform',function(d){
+				console.log(arc.centroid(d))
+				var x = arc.centroid(d)[0]
+				var y = arc.centroid(d)[1]
+				return 'translate('+x+','+y+')'
+			})
+	</script>
+	<script>
+		width =height =  600;
+		var padding = {top:40,right:40,bottom:40,left:40}
+		console.log(dataset)
+		var xScale = d3.scale.ordinal()
+						.domain(d3.range(dataset.length))
+						.rangeRoundBands([0,width-padding.left-padding.right],0.3)
+		var yScale = d3.scale.linear()
+						.domain([0,d3.max(dataset,function(d){
+							return d[1]
+						})])
+						.range([0,height-padding.bottom-padding.top])
+
+		var svg1 = d3.select('body').append('svg').attr('width',width).attr('height',height)
+		svg1.selectAll('rect')
+			.data(dataset)
+			.enter()
+			.append('rect')
+			.attr('width',xScale.rangeBand())
+			.attr('height',function(d){
+				return  yScale(d[1])
+			})
+			.attr('x',function(d,i){
+				return padding.left + xScale(i)
+			})
+			.attr('y',function(d){
+				return height - padding.bottom - yScale(d[1])
+			})
+			.attr('fill',function(d,i){
+				return colors(i)
+			})
+		svg1.selectAll('text')
+			.data(dataset)
+			.enter()
+			.append('text')
+			.text(function(d){
+				return d[1]
+			})
+			.attr('text-anchor','middle')
+			.attr('dx','2em')
+			.attr('fill',function(d,i){
+				return colors(i)
+			})
+			.attr('font-size','14px')
+			.attr('x',function(d,i){
+				return padding.left + xScale(i)
+			})
+			.attr('y',function(d){
+				return height - padding.bottom - yScale(d[1])
+			})
+
+			var xAxis = d3.svg.axis()
+						.scale(xScale)
+						.orient('bottom')
+						.tickFormat(function(v){
+							console.log(v)
+							return dataset[v][0]
+						})
+
+			yScale.range([height-padding.top-padding.bottom,0])
+
+			var yAxis = d3.svg.axis()
+						.scale(yScale)
+						.orient('left')
+						
+
+
+			var xg = svg1.append('g').attr('transform','translate('+padding.left+','+(height-padding.bottom)+')').attr('class','axis').call(xAxis)
+			var yg = svg1.append('g').attr('transform','translate('+padding.left+','+padding.top+')').attr('class','axis').call(yAxis)
+	</script>
+</body>
+</html>

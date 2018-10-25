@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title></title>
+	<script src='../d3.min.js'></script>
+	<link rel="stylesheet" href="">
+	<style>
+		.axis line,.axis path{
+			fill:none;
+			stroke:black;
+			shape-rendering: crispEdges;
+		}
+		.axis text{
+			font-family: sans-serif;
+			font-size: 11px;
+		}
+	</style>
+</head>
+<body>
+	<script>
+		var width=800,height=600,padding={top:30,right:30,bottom:30,left:30},colors = d3.scale.category20()
+
+		var rand = d3.random.normal(170,15)
+		var dataset = []
+		for(var i=0;i<100;i++){
+			dataset.push(rand())
+		}
+		
+		var binNum = 20,
+			rangeMin = 100,
+			rangeMax = 220
+		var histogram = d3.layout.histogram()
+						 .range([rangeMin,rangeMax])
+						 .bins(binNum)
+						 .frequency(true)
+		var hisData = histogram(dataset)
+		
+		var xTick = hisData.map((d)=>{return d.x})
+
+		var xScale = d3.scale.ordinal()
+						.domain(xTick)
+						.rangeRoundBands([0,width-padding.left-padding.right],0.5)
+		var xAxis = d3.svg.axis()
+					 .scale(xScale)
+					 .orient('bottom')
+					 .tickFormat(d3.format('0f'))
+		var svg = d3.select('body').append('svg').attr('width',width).attr('height',height)
+
+		var gTick = svg.append('g').attr('class','axis').attr('transform','translate('+padding.left+','+(height-padding.bottom)+')').call(xAxis)
+
+		var yScale = d3.scale.linear()
+						.domain(d3.extent(hisData,(d)=>{return d.y}))
+						.range([5,height-padding.top-padding.bottom])
+
+		var line = d3.svg.line()
+					.x((d)=>{return xScale(d.x)})
+					.y((d)=>{return height-yScale(d.y)})
+					.interpolate('basis')
+
+		var gLine = svg.append('g').attr('transform','translate('+padding.left+','+(-padding.bottom)+')')
+
+		gLine.append('path')
+				.attr('fill','none')
+				.attr('stroke',(d,i)=>{
+					return colors(i)
+				})
+				.attr('d',line(hisData))
+
+			
+
+	</script>
+</body>
+</html>

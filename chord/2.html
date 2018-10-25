@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title></title>
+	<script src='../d3.min.js'></script>
+	<link rel="stylesheet" href="">
+</head>
+<body>
+	<script>
+		var content = ['亚洲','欧洲','非洲','美洲','大洋洲']
+
+		var popData = [
+			[4300,2310,7634,2314,2342],
+			[2142,4212,5621,3453,421],
+			[3212,674,3456,3456,743],
+			[532,8763,1231,9873,1023],
+			[7653,1234,252,8253,9123]
+		]
+
+		var chord = d3.layout.chord()
+					.padding(0.01)
+					.sortGroups(d3.ascending)
+					.matrix(popData)
+
+		var width=600,height=600;
+		var colors = d3.scale.category20()
+
+		var innerRadius = width/2 * 0.7
+		var outerRadius = innerRadius* 1.1
+		var arcPath = d3.svg.arc()
+					.innerRadius(innerRadius)
+					.outerRadius(outerRadius)
+		var svg = d3.select('body').append('svg').attr('width',width).attr('height',height)
+
+		var gChord = svg.append('g').attr('transform','translate('+width/2+','+height/2+')')
+
+		var outerPath = gChord.append('g')
+		var innerPath = gChord.append('g')
+
+		outerPath.selectAll('path')
+				.data(chord.groups())
+				.enter()
+				.append('path')
+				.attr('fill',function(d,i){
+					return colors(i)
+				})
+				.attr('d',arcPath)
+				.on('mousemove',fade(0))
+				.on('mouseout',fade(1))
+
+
+				function fade(opacity){
+					return function(d,i){
+					innerPath.selectAll('path')
+							.filter(function(d){
+								console.log(d)
+								return d.source.index != i && d.target.index != i
+							})
+							.transition()
+							.duration(500)
+							.style('opacity',opacity)
+					}
+				}
+		outerPath.selectAll('text')
+				.data(chord.groups())
+				.enter()
+				.append('text')
+				.each(function(d,i){
+					d.name = content[i]
+					d.angle = (d.startAngle + d.endAngle)/2
+				})
+				
+				.attr('text-anchor','middle')
+				.attr('fill',function(d,i){
+					return colors(i)
+				})
+				.attr('transform',function(d){
+					console.log(d.angle)
+					var result = 'rotate('+(d.angle*180/Math.PI)+')'
+					result += ' translate(0,'+-(outerRadius+10)+')'
+					return result
+				})
+				.text(function(d){
+					return d.name
+				})
+
+				
+				
+		var chordPath = d3.svg.chord()
+						.radius(innerRadius)
+		innerPath.selectAll('path')
+				.data(chord.chords())
+				.enter()
+				.append('path')
+				.attr('fill',function(d,i){
+					return colors(i)
+				})
+				.attr('d',chordPath)
+		
+	</script>
+</body>
+</html>

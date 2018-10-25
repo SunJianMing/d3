@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title></title>
+	<script src='../d3.min.js'></script>
+	<link rel="stylesheet" href="">
+	<style>
+		.axis line,.axis path{
+			fill:none;
+			stroke:black;
+			shape-rendering: crispEdges;
+		}
+		.axis text{
+			font-family: sans-serif;
+			font-size: 11px;
+		}
+	</style>
+</head>
+<body>
+	<script>
+		var colors = d3.scale.category20()
+		var width=600,height=400,
+			padding = {top:20,left:20,bottom:40,right:20}
+		var svg = d3.select('body').append('svg').attr('width',width).attr('height',height)
+
+		var rand = d3.random.normal(170,10)
+		var dataset = []
+		for(var i=0;i<100;i++){
+			dataset.push(rand())
+		}
+
+		var binNum = 20,
+			rangeMax = 210,
+			rangeMin = 130
+		var histogram = d3.layout.histogram()
+						.range([rangeMin,rangeMax])
+						.bins(binNum)
+						.frequency(true)
+		var hisData = histogram(dataset)
+
+		var xTick = hisData.map((d)=>{return d.x})
+		var xScale = d3.scale.ordinal()
+						.domain(xTick)
+						.rangeRoundBands([0,width-padding.left-padding.right],0.2)
+		var xAxis = d3.svg.axis()
+					.scale(xScale)
+					.orient('bottom')
+					.tickFormat(d3.format('0f'))
+		var gXAxis = svg.append('g').attr('transform','translate('+padding.left+','+(height-padding.bottom)+')').attr('class','axis').call(xAxis)
+
+		var yScale = d3.scale.linear()
+					.domain([d3.min(hisData,(d)=>{return d.y}),d3.max(hisData,(d)=>{return d.y})])
+					.range([10,height - padding.bottom - padding.top])
+		var gRect = svg.append('g').attr('transform','translate('+padding.left+','+(-padding.bottom)+')')
+		 gRect.selectAll('.rect')
+		 		.data(hisData)
+		 		.enter()
+		 		.append('rect')
+		 		.attr('fill',(d,i)=>{return colors(i)})
+		 		.attr('x',(d)=>{return xScale(d.x)})
+		 		.attr('y',(d)=>{return height - yScale(d.y)})
+		 		.attr('width',(d)=>{
+		 			return xScale.rangeBand()
+		 		})
+		 		.attr('height',(d)=>{
+		 			return yScale(d.y)
+		 		})
+	</script>
+</body>
+</html>

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title></title>
+	<script src='../d3.min.js'></script>
+
+	<link rel="stylesheet" href="">
+</head>
+<body>
+	<script>
+		var citiy = {
+			name:'',
+			children:[
+				{name:'北京'},
+				{name:'上海'},
+				{name:'杭州'},
+				{name:'成都'},
+				{name:'昆明'},
+				{name:'桂林'},
+				{name:'西安'},
+				{name:'太原'},
+				{name:'广州'}
+			]
+		}
+		var raiway = [
+			{source:'北京',target:'广州'},
+			{source:'北京',target:'上海'},
+			{source:'北京',target:'杭州'},
+			{source:'北京',target:'成都'},
+			{source:'北京',target:'昆明'},
+			{source:'北京',target:'桂林'},
+			{source:'北京',target:'西安'},
+			{source:'北京',target:'太原'},
+			{source:'北京',target:'广州'},
+
+			{source:'上海',target:'广州'},
+			
+
+			{source:'杭州',target:'广州'},
+			
+			{source:'成都',target:'西安'},
+			
+
+		]
+
+		var width = 800,height=800
+		var colors = d3.scale.category20()
+		var cluster = d3.layout.cluster()
+						.size([360,width/2-50])
+						.separation(function(a,b){
+							return (a.parent == b.parent?1:2)/a.depth
+						})
+		var bundle = d3.layout.bundle()
+
+		var nodes = cluster(citiy)
+
+		var oLinks = map(nodes,raiway)
+
+		var links = bundle(oLinks)
+
+
+		var lineRadial = d3.svg.line.radial()
+							.interpolate('bundle')
+							.tension(0.85)
+							.radius(function(d){
+								return d.y
+							})
+							.angle(function(d){
+								return d.x /180*Math.PI
+							})
+		var svg = d3.select('body').append('svg').attr('width',width).attr('height',height)
+		var gBundle = svg.append('g').attr('transform','translate('+width/2+','+height/2+')')
+		var line = gBundle.selectAll('.line')
+					.data(links)
+					.enter()
+					.append('path')
+					.attr('fill','none')
+					.attr('stroke-width','5px')
+					.attr('stroke',function(d,i){
+						return colors(i)
+					})
+					.attr('d',lineRadial)
+		var node = gBundle.selectAll('.node')
+						.data(nodes.filter((d,i)=>{return !d.children}))
+						.enter()
+						.append('g')
+						.attr('transform',function(d){
+							return 'rotate('+(d.x -90)+')'+'translate('+d.y+')'+'rotate('+(90-d.x)+')'
+						})
+			node.append('circle')
+					.attr('fill',function(d,i){
+						return colors(i)
+					})
+					.attr('r',20)
+			node.append('text')
+				.attr('text-anchor','middle')
+				.attr('dy','.3em')
+				.attr('fill','white')
+				.text((d)=>{
+					return d.name
+				})
+	function map(nodes,links){
+		var hash = []
+		for(var i=0;i<nodes.length;i++){
+			hash[nodes[i].name] = nodes[i]
+		}
+		var resultLink = []
+		for(var i=0;i<links.length;i++){
+			resultLink.push({
+				source:hash[links[i].source],
+				target:hash[links[i].target]
+			})
+		}
+		return resultLink
+	}
+
+	</script>
+</body>
+</html>
